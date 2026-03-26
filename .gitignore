@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*egg-info/
+.ipynb_checkpoints/
+*.whl
+
+# Build artifacts
+bin/
+lib/
+build/
+*.so
+*.pyd
+*.dll
+*.pdb
+*.a
+*.o
+*.d
+
+# IDE
+.vs/
+*.user
+.vscode/
+
+# Generated docs
+html/
+
+# macOS
+.DS_Store
+
+# Notebooks and data files (add back selectively later)
+*.ipynb
+!examples/**/*.ipynb
+*.xlsx
