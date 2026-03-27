@@ -29,6 +29,13 @@ if (!(condition)) { \
     throw std::runtime_error(errmsg); \
 }
 
+/** PY_BEGIN / PY_END wrap a Python-callable C++ function body in a try/catch.
+ *  If any C++ std::exception is thrown (including qf::Exception from QF_ASSERT),
+ *  the catch block clears any existing Python error, converts the C++ exception
+ *  into a Python RuntimeError with the original message (ex.what()), and returns
+ *  nullptr to signal to the Python interpreter that an error occurred.
+ *  This prevents C++ exceptions from crashing the Python process.
+ */
 #define PY_BEGIN try {
 
 #define PY_END } \

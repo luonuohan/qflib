@@ -11,6 +11,9 @@
 #include "pyfunctions3.hpp"
 #include "pyfunctions4.hpp"
 
+/** Method definitions for the Python module */
+/** PyMethodDef is a C typedef alias for the struct PyMethodDef type used in CPython C-API to describe methods of a module or object (name, function pointer, flags, docstring). */
+/** METH_VARARGS is a flag that tells the interpreter that the function will accept two arguments of type PyObject*: 1. self, 2. args */
 static PyMethodDef PyQflibMethods[] = 
 {
 // test functions
@@ -82,17 +85,33 @@ static struct PyModuleDef modef =
   PyModuleDef_HEAD_INIT,
   "qflib",
   "Python interface to the qflib library",
-  -1,
+  -1, // memory management flag, -1 means the module keeps state in global variables
   PyQflibMethods
 };
 
-// Creation of module
+/**
+ * PyMODINIT_FUNC is a CPython macro that does three things implicitly:
+ * 1. Sets the return type to PyObject*
+ * 2. Declares any special linkage required by the platform
+ * 3. Declares the function as extern "C" to prevent C++ name mangling,
+ *    so Python's module loader can find it by its plain name "PyInit_pyqflib"
+ *
+ * The function name must be PyInit_<module_name> — here PyInit_pyqflib
+ * matches the compiled shared library name (pyqflib.so / pyqflib.pyd).
+ * When Python executes `import pyqflib`, it dlopen's the .so and calls
+ * this function to create and return the module object.
+ */
 PyMODINIT_FUNC
 PyInit_pyqflib(void)
 {
   PyObject* m = PyModule_Create(&modef);
   if (m == NULL)
     return NULL;
+    
+  /** Initializes NumPy's C API function pointer table.
+   *  Required before any NumPy C functions (e.g. PyArray_SimpleNewFromData)
+   *  can be called; without it, those calls would segfault.
+   */
   import_array();
   return m;
 }
