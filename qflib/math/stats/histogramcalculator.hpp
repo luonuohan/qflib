@@ -58,7 +58,8 @@ public:
       // rows = bins, cols = variables
       this->results_(b, j) += 1.0;
     }
-    ++this->nsamples_;
+    ++this->nsamples_; // this-> forces a dependent lookup 
+    // protected member of StatisticsCalculator
   }
 
   /// Return the counts matrix: rows = bins, cols = variables

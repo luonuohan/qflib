@@ -1,12 +1,10 @@
 #include "bsmcsimpledeltahedger.hpp"
 #include <qflib/math/random/rng.hpp>
 #include <qflib/methods/montecarlo/eulerpathgenerator.hpp>
-#include <cmath>
-#include <vector>                   // for std::vector<>
-#include <qflib/math/stats/meanvarcalculator.hpp>   // or wherever your MeanVarCalculator lives
-#include <qflib/math/stats/histogramcalculator.hpp>// ditto
-#include <cmath>
+#include <qflib/math/stats/meanvarcalculator.hpp>
+#include <qflib/math/stats/histogramcalculator.hpp>
 #include <armadillo>
+#include <cmath>
 
 BEGIN_NAMESPACE(qf)
 
@@ -83,23 +81,17 @@ void BsMcSimpleDeltaHedger::hedge(const std::vector<StatisticsCalculator<double*
   std::vector<double> spotPath(N+1); // Store the spot path
 
   for (unsigned long i=0; i<nPaths; ++i) {
-    pathGen_->next(path);
-    // --- simulate spot path ---
-    // double S = spot0_;
-    // simulate *and store* the entire stock path
+    pathGen_->next(path); // path is (N+1) x 1 matrix of standard normal deviates
     spotPath[0] = spot0_;
-
     for (unsigned j=1; j<=N; ++j) {
       double z = path(j,0);
-      //S = S * std::exp(drifts_[j-1] + stdevs_[j-1]*z);
       double increment = std::exp(drifts_[j-1] + stdevs_[j-1]*z);
       spotPath[j] = spotPath[j-1] * increment;
     }
-
     // --- initialize hedge at t=0 ---
     double cash, deltaPrev;
     double initPrice, initDelta;
-    priceAndDelta(spot0_, 0.0, fwdratesToT_[0], initPrice, initDelta);
+    priceAndDelta(spot0_, 0.0, fwdratesToT_[0], initPrice, initDelta); 
     // buyer:  pay premium, receive proceeds from shorting Δ shares
     cash       = -initPrice + initDelta*spotPath[0]; // for buyer of option -initPrice + initDelta * spotPath[0];  
     //cash       = initPrice - initDelta*spot0_; for seller of option
