@@ -21,26 +21,52 @@ public:
    *                  The i-th bin is [binEdges[i], binEdges[i+1]).
    * @param nvars     Number of variables per sample (columns).
    */
-  HistogramCalculator(const std::vector<double>& binEdges, size_t nvars)
-    : StatisticsCalculator<ITER>(nvars, binEdges.size()-1)
+
+
+  /// ctor
+  HistogramCalculator(const std::vector<double>& binEdges, size_t nvars);
+  
+  /// Clear all counts back to zero
+  virtual void reset() override;
+
+  /// For each variable j, find its bin and increment that count
+  virtual void addSample(ITER begin, ITER end) override;
+
+  /// Return the counts matrix: rows = bins, cols = variables
+  virtual Matrix const & results() override {
+    return this->results_;
+  }
+
+private:
+  static size_t checkAndGetBins(const std::vector<double>& edges) {
+    QF_ASSERT(edges.size() >= 2, "Need at least two edges to form one bin");
+    return edges.size() - 1;
+  }
+
+  std::vector<double> binEdges_;
+  size_t nBins_;
+};
+
+template <typename ITER>
+HistogramCalculator<ITER>::HistogramCalculator(const std::vector<double>& binEdges, size_t nvars)
+    : StatisticsCalculator<ITER>(nvars, checkAndGetBins(binEdges))
     , binEdges_(binEdges), nBins_(binEdges.size()-1)
   {
-    QF_ASSERT(binEdges_.size() >= 2,
-      "Need at least two edges to form one bin");
     // sanity: edges must be strictly increasing
     for (size_t i = 1; i < binEdges_.size(); ++i)
       QF_ASSERT(binEdges_[i] > binEdges_[i-1],
         "binEdges must be strictly increasing");
   }
 
-  /// Clear all counts back to zero
-  virtual void reset() override {
+
+template <typename ITER>
+void HistogramCalculator<ITER>::reset() {
     StatisticsCalculator<ITER>::reset();
     this->results_.zeros(nBins_, this->nVariables());
-  }
+}
 
-  /// For each variable j, find its bin and increment that count
-  virtual void addSample(ITER begin, ITER end) override {
+template <typename ITER>
+void HistogramCalculator<ITER>::addSample(ITER begin, ITER end) {
     QF_ASSERT(end - begin == this->nVariables(),
       "HistogramCalculator: sample size mismatch");
     for (size_t j = 0; j < this->nVariables(); ++j) {
@@ -60,16 +86,8 @@ public:
     }
     ++this->nsamples_; // this-> forces a dependent lookup 
     // protected member of StatisticsCalculator
-  }
+}
 
-  /// Return the counts matrix: rows = bins, cols = variables
-  virtual Matrix const & results() override {
-    return this->results_;
-  }
 
-private:
-  std::vector<double> binEdges_;
-  size_t nBins_;
-};
 
 END_NAMESPACE(qf)
