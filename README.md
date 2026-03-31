@@ -372,21 +372,21 @@ prices = euroBS_vec(1, 100.0, strikes, 1.0, 0.045, 0.02, 0.20)[:, 0]
 
 ## Design decisions and optimizations
 
-### Cache-friendly path generation (`EulerPathGenerator`)
+### Reduced memory bandwidth in path generation (`EulerPathGenerator`)
 
-The original `next()` used a scratch array `normalDevs_` — generating random values into a temporary buffer, then copying them into `pricePath` column by column. Since Armadillo matrices are column-major, `begin_col(j)` / `end_col(j)` expose contiguous memory iterators. `NormalRng::next()` accepts any iterator, so the scratch array is eliminated entirely — random values are written directly into the destination column in one pass:
+Eliminated the intermediate `normalDevs_` scratch array by writing random values directly into the destination matrix column. Since Armadillo is column-major, `begin_col(j)` / `end_col(j)` expose contiguous memory iterators that `NormalRng::next()` can write into directly — removing a redundant copy loop and one unnecessary buffer allocation:
 
 ```cpp
-// Before: generate into scratch → copy into matrix (two passes, extra allocation)
+// Before: generate into scratch buffer, then copy into matrix (two write passes)
 nrng_.next(normalDevs_.begin(), normalDevs_.end());
 for (size_t i = 0; i < ntimesteps_; ++i)
     pricePath(i, j) = normalDevs_(i);
 
-// After: write directly into column (one pass, no scratch array)
+// After: write directly into matrix column (one write pass, no scratch buffer)
 nrng_.next(pricePath.begin_col(j), pricePath.end_col(j));
 ```
 
-This removes the intermediate buffer and halves the number of memory writes in the hot path.
+Both access patterns are contiguous in memory. The gain is reduced memory bandwidth — one write pass instead of two — and elimination of the `normalDevs_` member entirely.
 
 ### Performance optimization: forward rate precomputation
 
