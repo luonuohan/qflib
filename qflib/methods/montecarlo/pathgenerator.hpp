@@ -33,7 +33,9 @@ public:
       The Matrix is resized to size ntimesteps * nfactors
   */
   virtual void next(qf::Matrix& pricePath) = 0;
-
+/** Derived path generators need to read these members directly when implementing next().
+   We could provide protected getters for these members, but that would be more verbose and less efficient.
+ */
 protected:
   PathGenerator() {};     // default ctor
   PathGenerator(size_t ntimesteps, size_t nfactors, qf::Matrix const& correlation);

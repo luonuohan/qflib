@@ -65,7 +65,7 @@ template <typename ITER>
 void NormalRng<URNG>::next(ITER begin, ITER end)
 {
   for (ITER it = begin; it != end; ++it)
-    *it = normcdf_(urng_);
+    *it = normcdf_(urng_); // draw one sample
 }
 
 template<typename URNG>

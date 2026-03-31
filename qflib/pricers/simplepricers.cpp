@@ -49,9 +49,9 @@ Vector digitalOptionBS(int payoffType, double spot, double strike, double timeTo
   double sigT = volatility * sqrt(timeToExp);
   double sig2 = volatility * volatility;
 
-  double epsilon = 1.0e-012;  // a very small hard-coded number
-  double d1 = log(fwd / (strike + epsilon)) / sigT + 0.5 * sigT;
-  double d2 = log(fwd / strike) / sigT - 0.5 * sigT;
+  double epsilon = 1.0e-012;  // guard against log(0) when fwd == strike
+  double d1 = log(fwd / strike + epsilon) / sigT + 0.5 * sigT;
+  double d2 = log(fwd / strike + epsilon) / sigT - 0.5 * sigT;
   NormalDistribution normal;
 
   // precompute common quantities

@@ -45,15 +45,15 @@ TEST_CASE("Standard normal invcdf", "[normaldist]")
     REQUIRE_THAT(N.invcdf(0.5), WithinAbs(0.0, 1e-10));
 
     // roundtrip: invcdf(cdf(x)) == x
-    // inverse CDF inherits ~1e-3 precision from inverfc implementation
+    // After inverfc bug fix, precision improved from ~1e-3 to near machine epsilon
     for (double x : {-3.0, -2.0, -1.0, 0.0, 0.5, 1.5, 2.0, 3.0}) {
         double p = N.cdf(x);
-        REQUIRE_THAT(N.invcdf(p), WithinAbs(x, 3e-3));
+        REQUIRE_THAT(N.invcdf(p), WithinAbs(x, 1e-10));
     }
 
-    // known quantiles
-    REQUIRE_THAT(N.invcdf(0.975), WithinAbs(1.96, 1e-3));
-    REQUIRE_THAT(N.invcdf(0.025), WithinAbs(-1.96, 1e-3));
+    // known quantiles (true z_0.975 = 1.959963984540054...)
+    REQUIRE_THAT(N.invcdf(0.975), WithinRel(1.959963984540054, 1e-10));
+    REQUIRE_THAT(N.invcdf(0.025), WithinRel(-1.959963984540054, 1e-10));
 }
 
 TEST_CASE("Non-standard normal distribution", "[normaldist]")
@@ -73,7 +73,7 @@ TEST_CASE("Non-standard normal distribution", "[normaldist]")
 
     // cdf roundtrip
     double x = 6.0;
-    REQUIRE_THAT(N.invcdf(N.cdf(x)), WithinAbs(x, 3e-3));
+    REQUIRE_THAT(N.invcdf(N.cdf(x)), WithinAbs(x, 1e-10));
 }
 
 TEST_CASE("NormalDistribution sigma must be positive", "[normaldist]")

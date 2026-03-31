@@ -8,12 +8,14 @@
 
 #include <qflib/defines.hpp>
 #include <qflib/exception.hpp>
+#include <cmath>
 
 BEGIN_NAMESPACE(qf)
 
-/** Class containing functions related to the error function. 
+/** Class containing functions related to the error function.
     The functions are static members, no objects of class ErrorFunction can be created.
-    Implementation adapted from Numerical Recipes in C++ 3ed. 
+    erf/erfc use the C++ standard library (std::erf, std::erfc).
+    inverf/inverfc use a rational approximation with Halley refinement.
 */
 class ErrorFunction
 {
@@ -36,13 +38,6 @@ private:
   ErrorFunction() = delete;
   ErrorFunction(ErrorFunction const&) = delete;
   ErrorFunction& operator=(ErrorFunction const&) = delete;
-
-  /** Calculates the complement of the error function using Chebyshev polynomial */
-  static double erfccheb(double z);
-
-  // state
-  static const int ncof = 28;
-  static const double cof[28];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,20 +45,12 @@ private:
 
 inline double ErrorFunction::erf(double x)
 {
-  // Return erf.x/ for any x.
-  if (x >= 0.)
-    return 1.0 - erfccheb(x);
-  else
-    return erfccheb(-x) - 1.0;
+  return std::erf(x);
 }
 
 inline double ErrorFunction::erfc(double x)
 {
-  // Return erfc.x/ for any x.
-  if (x >= 0.)
-    return erfccheb(x);
-  else
-    return 2.0 - erfccheb(-x);
+  return std::erfc(x);
 }
 
 inline double ErrorFunction::inverf(double p)

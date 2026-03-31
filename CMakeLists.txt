@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "26.0")
 project(qflib)
 
 # This section is only for MSVC, GCC/Clang handle these themselves

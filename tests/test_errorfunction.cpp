@@ -39,10 +39,11 @@ TEST_CASE("erfc known values", "[errorfunction]")
 TEST_CASE("inverf roundtrip", "[errorfunction]")
 {
     // inverf(erf(x)) == x
-    // The Numerical Recipes implementation has ~1e-3 precision on the inverse
+    // After fixing Halley's method (exp(-x*x) bug) and using 4 iterations,
+    // precision improved from ~1e-3 to near machine epsilon
     for (double x : {-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0}) {
         double y = ErrorFunction::erf(x);
-        REQUIRE_THAT(ErrorFunction::inverf(y), WithinAbs(x, 2e-3));
+        REQUIRE_THAT(ErrorFunction::inverf(y), WithinAbs(x, 1e-12));
     }
 }
 
@@ -51,6 +52,6 @@ TEST_CASE("inverfc roundtrip", "[errorfunction]")
     // inverfc(erfc(x)) == x
     for (double x : {-2.0, -1.0, 0.0, 0.5, 1.0, 2.0}) {
         double y = ErrorFunction::erfc(x);
-        REQUIRE_THAT(ErrorFunction::inverfc(y), WithinAbs(x, 2e-3));
+        REQUIRE_THAT(ErrorFunction::inverfc(y), WithinAbs(x, 1e-12));
     }
 }

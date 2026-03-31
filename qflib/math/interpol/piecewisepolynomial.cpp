@@ -59,7 +59,8 @@ double PiecewisePolynomial::integral(double a, double b) const
   if (idxBkpt0 == idxBkpt1) {
     // both a and b are between two breakpoints or outside the bkpt range
     size_t i = idxBkpt0 < 0 ? 0 : idxBkpt0; // if a and b are both to the left of the first bkpt
-    return isign * c_(0, i) * (b - a); // constant times (b-a)
+    // return isign * c_(0, i) * (b - a); // constant times (b-a)
+    return isign * (primitive(i, b - x_(i), 1) - primitive(i, a - x_(i), 1)); // the integral of the polynomial(k=1) between a and b
   }
 
   double val(0.0);  // the value of the integral

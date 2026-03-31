@@ -48,7 +48,7 @@ inline EulerPathGenerator<NRNG>::EulerPathGenerator(ITER timestepsBegin,
                           ITER timestepsEnd,
                           size_t nfactors,
                           Matrix const& correlMat)
-  : PathGenerator((timestepsEnd - timestepsBegin), nfactors, correlMat),
+  : PathGenerator(static_cast<size_t>(timestepsEnd - timestepsBegin), nfactors, correlMat),
   nrng_((timestepsEnd - timestepsBegin) * nfactors, 0.0, 1.0)
 {
   QF_ASSERT(ntimesteps_ > 0, "no time steps!");
@@ -76,9 +76,13 @@ inline void EulerPathGenerator<NRNG>::next(Matrix& pricePath)
   pricePath.resize(ntimesteps_, nfactors_);
   // iterate over columns; the matrix will be filled column by column
   for (size_t j = 0; j < nfactors_; ++j) {
-    nrng_.next(normalDevs_.begin(), normalDevs_.end());
-    for (size_t i = 0; i < ntimesteps_; ++i)
-      pricePath(i, j) = normalDevs_(i);
+    /** 
+     * Cache-Friendly
+     NormalRng::next() takes any iterator, we can write directly into the pricePath column, 
+     eliminating normalDevs_ entirely. 
+     Armadillo matrices are column-major, so begin_col(j) / end_col(j) give contiguous iterators:
+    */
+    nrng_.next(pricePath.begin_col(j), pricePath.end_col(j)); 
   }
   // finally apply the Cholesky factor if not empty
   if (sqrtCorrel_.n_rows != 0) {

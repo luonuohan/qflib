@@ -181,6 +181,46 @@ inline double PiecewisePolynomial::derivative(size_t xIdx, double h, size_t k) c
   return val;
 }
 
+/** Computes the k-th antiderivative of the polynomial at breakpoint xIdx, evaluated at displacement h.
+    Uses Horner's method to evaluate in a single O(n+k) sweep, avoiding explicit pow() calls
+    and separate factorial computations, for both efficiency and numerical stability.
+    Also, since we always call primitive() with k = 1, we have a fast path that avoids the general factorial computation.
+*/
+inline double PiecewisePolynomial::primitive(size_t xIdx, double h, size_t k) const
+{
+  double val(0.0);
+  size_t ord = order();
+  ptrdiff_t ik = k;
+
+  if ((xIdx == 0 && h < 0) || (xIdx == size() - 1 && h > 0)) {
+    // outside: flat extrapolation, c * h^k / k!
+    double c = c_(0, xIdx);
+    double fact = 1.0;
+    for (long i = 2; i <= ik; ++i)
+      fact *= i;
+    val = c * std::pow(h, ik) / fact;
+  }
+  else {
+    if (k == 1) {
+        // fast path: denom is just (j+1), single h multiply
+        for (ptrdiff_t j = ord; j >= 0; --j)
+            val = c_(j, xIdx) / (j + 1) + val * h;
+        val *= h;
+    } else {
+        // general path
+        for (ptrdiff_t j = ord; j >= 0; --j) {
+            double denom = 1.0;
+            for (size_t m = 1; m <= k; ++m)
+                denom *= (j + m);
+            val = c_(j, xIdx) / denom + val * h;
+        }
+        for (size_t m = 0; m < k; ++m)
+            val *= h;
+    }
+}
+  return val;
+}
+/*
 inline double PiecewisePolynomial::primitive(size_t xIdx, double h, size_t k) const
 {
   double val(0.0);
@@ -209,6 +249,8 @@ inline double PiecewisePolynomial::primitive(size_t xIdx, double h, size_t k) co
   }
   return val;
 }
+*/
+
 
 
 template<typename ITER>
@@ -242,6 +284,9 @@ PiecewisePolynomial::PiecewisePolynomial(XITER xFirst, XITER xLast, YITER yFirst
   }
 }
 
+// Stores the breakpoints from the iterator range [xFirst, xLast) into x_.
+// x_ is resized to fit, then each element is copied via assignment (not raw memcpy).
+// Note: the 'order' parameter is accepted but not used here.
 template<typename ITER>
 inline void PiecewisePolynomial::setBreakPoints(ITER xFirst, ITER xLast, size_t order)
 {

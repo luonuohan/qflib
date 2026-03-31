@@ -29,9 +29,7 @@ public:
   /// run the Δ-hedge: accumulate P&L into any number of stats calculators
   /// hedgeFreq = rehedges per year; nPaths = Monte Carlo paths
   /// in bsmcsimpledeltahedger.hpp
-  void hedge(const std::vector<StatisticsCalculator<double*>*>& statsCalcs,
-    unsigned                                 hedgeFreq,
-    unsigned long                            nPaths);
+  void hedge(const std::vector<StatisticsCalculator<double*>*>& statsCalcs, unsigned hedgeFreq, unsigned long nPaths);
 
 
 private:
@@ -39,16 +37,18 @@ private:
   SPtrYieldCurve           discyc_;
   double                   divyld_, simVol_, markVol_, spot0_;
   McParams                 mcparams_;
-  OptionType optType_;
-  int        payoffType_;  // +1 or –1
-  double     K_, T_;
+  OptionType               optType_;
+  int                      payoffType_;  // +1 or –1
+  double                   K_, T_;
 
 
   std::unique_ptr<PathGenerator> pathGen_;
   std::vector<double>      times_, drifts_, stdevs_;
+  std::vector<double>      fwdrates_;    // fwdRate(times_[i], times_[i+1])
+  std::vector<double>      fwdratesToT_; // fwdRate(times_[j], T) for priceAndDelta
 
-  /// compute analytic price & Δ (via simplepricers) at (S,t)
-  void priceAndDelta(double S, double t, double& price, double& delta) const;
+  /// compute analytic price & Δ (via simplepricers) at (S,t) with precomputed rate r
+  void priceAndDelta(double S, double t, double r, double& price, double& delta) const;
 };
 
 END_NAMESPACE(qf)
