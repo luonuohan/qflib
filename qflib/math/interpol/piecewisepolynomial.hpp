@@ -220,36 +220,6 @@ inline double PiecewisePolynomial::primitive(size_t xIdx, double h, size_t k) co
 }
   return val;
 }
-/*
-inline double PiecewisePolynomial::primitive(size_t xIdx, double h, size_t k) const
-{
-  double val(0.0);
-  size_t ord = order();
-  ptrdiff_t ik = k;  // convert to integer for signed arithmetic
-
-  if ((xIdx == 0 && h < 0) || (xIdx == size() - 1 && h > 0)) {
-    // the integration range is outside the breakpoint domain
-    // then compute c*h^k/k! (flat extrapolation)
-    double c = c_(0, xIdx);
-    double fact = 1.0;
-    for (long i = 2; i <= ik; ++i)  // compute k!
-      fact *= i;
-    val = c * std::pow(h, ik) / fact;
-  }
-  else {
-    //  the integration range is inside the breakpoint domain
-    ptrdiff_t i;
-    size_t factnp1 = factorial(order() + 1);
-    for (i = ord + ik; i >= ik; --i) {
-      factnp1 /= (i + k + 1);
-      val = c_(i - ik, xIdx) + val * h / (i + 1);
-    }
-    for (; i >= 0; --i)
-      val = val * h / (i + 1);
-  }
-  return val;
-}
-*/
 
 
 
