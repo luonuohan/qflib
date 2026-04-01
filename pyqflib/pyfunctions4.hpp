@@ -144,7 +144,7 @@ PY_END;
 
 // pyQfBSHedge for simulation hedging
 static
-PyObject* pyQfBSHedge(PyObject* /*self*/, PyObject* pyArgs)
+PyObject* pyQfBSHedge(PyObject* pyDummy, PyObject* pyArgs)
 {
   PY_BEGIN;
 
@@ -174,16 +174,18 @@ PyObject* pyQfBSHedge(PyObject* /*self*/, PyObject* pyArgs)
 
   // 1) Get the yield curve
   std::string ycName(discName);
-  qf::SPtrYieldCurve yc =
-    qf::market().yieldCurves().get(ycName);
+  qf::SPtrYieldCurve yc = qf::market().yieldCurves().get(ycName);
   QF_ASSERT(yc, "yield curve not found");
 
   // 2) Build the product
   qf::SPtrProduct prod;
   if (optType == 0)  // European
-    prod.reset(new qf::EuropeanCallPut(payoffType, strike, timeToExp));
+    //prod.reset(new qf::EuropeanCallPut(payoffType, strike, timeToExp));
+    prod = std::make_shared<qf::EuropeanCallPut>(payoffType, strike, timeToExp);
+
   else               // Digital
-    prod.reset(new qf::DigitalCallPut(payoffType, strike, timeToExp));
+    //prod.reset(new qf::DigitalCallPut(payoffType, strike, timeToExp));
+    prod = std::make_shared<qf::DigitalCallPut>(payoffType, strike, timeToExp);
 
   // 3) MC params
   qf::McParams mc;
@@ -206,8 +208,8 @@ PyObject* pyQfBSHedge(PyObject* /*self*/, PyObject* pyArgs)
   qf::MeanVarCalculator<double*>   mv(1);
   // build binEdges vector
   std::vector<double> edges(histNbins+1);
-  for (int i = 0; i <= histNbins; ++i)
-    edges[i] = histMin + (histMax - histMin) * i / histNbins;
+  for (int i = 0; i <= histNbins; ++i){
+    edges[i] = histMin + (histMax - histMin) * i / histNbins};
   qf::HistogramCalculator<double*> hist(edges, 1);
 
   // 6) Run the Δ-hedge
